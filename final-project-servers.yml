@@ -44,6 +44,43 @@ Resources:
         FromPort: 0
         ToPort: 65535
         CidrIp: 0.0.0.0/0
+  
+  ProfileWithRolesForOurApp:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref UdagramS3ReadOnlyEC2
+    DependsOn: UdagramS3ReadOnlyEC2
+
+  UdagramS3ReadOnlyEC2:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: UdagramS3ReadOnlyEC2
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "ec2.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Policies:
+        - PolicyName: "UdagramS3ReadOnlyAccess"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "s3:ListBucket"
+                Resource:
+                  - "arn:aws:s3:::final-project-cf"
+              - Effect: "Allow"
+                Action:
+                  - "s3:GetObject"
+                Resource:
+                  - "arn:aws:s3:::final-project-cf/*"
+
   WebAppLaunchConfig:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
@@ -52,11 +89,15 @@ Resources:
           #!/bin/bash
           apt-get update -y
           apt-get install apache2 -y
+          apt-get install awscli -y
+          apt-get install unzip -y
           systemctl start apache2.service
           cd /var/www/html
-          echo "Udacity Demo Web Server Up and Running!" > index.html
+          aws s3 cp s3://final-project-cf/udagram.zip .
+          unzip -o udagram.zip
+          rm udagram.zip
       ImageId: ami-0ac73f33a1888c64a
-      KeyName: finalproject
+      IamInstanceProfile: !Ref ProfileWithRolesForOurApp
       SecurityGroups:
       - Ref: WebServerSecGroup
       InstanceType: t2.micro
