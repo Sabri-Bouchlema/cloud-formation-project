@@ -2,5 +2,13 @@
 	{
 		"ParameterKey": "EnvironmentName",
 		"ParameterValue": "FinalProject"
+	},
+	{
+		"ParameterKey": "InstanceVolumeSize",
+		"ParameterValue": "10"
+	},
+	{
+		"ParameterKey": "BucketARN",
+		"ParameterValue": "arn:aws:s3:::final-project-cf"
 	}
 ]
